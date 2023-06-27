@@ -11,18 +11,9 @@ class Tran:
     def __init__(self, lang, text):
         self.text = text
         self.lang = lang
-    
-    def translate(self):
-        #translates from greek to english 
-        self.translated_txt = ts.translate_text(self.text, translater='google',
-                                            from_language='el',
-                                            to_language='en')
-        return self.translated_txt
 
-
-    def anonymize(self):
         #List of entities to look for
-        entities = ['PERSON', 'NUMBERS',
+        self.entities = ['PERSON', 'NUMBERS',
                    'EMAIL_ADDRESS', 'IP_ADDRESS', 'NRP',
                    'LOCATION', 'BLOOD_TYPE']
         
@@ -33,22 +24,20 @@ class Tran:
         blood_type_recognizer = PatternRecognizer(supported_entity="BLOOD_TYPE",
                                       deny_list=["A-","A+","B-","B+","AB-","AB+","O-","O+"])
         
-        numbers_pattern = Pattern(name="numbers_pattern",regex="\d+", score = 0.5)
+        numbers_pattern = Pattern(name="numbers_pattern",regex="\d+", score = 0.3)
 
-        number_recognizer = PatternRecognizer(supported_entity="NUMBER", patterns = [numbers_pattern])
+        number_recognizer = PatternRecognizer(supported_entity="NUMBERS", patterns = [numbers_pattern])
 
         self.analyzer.registry.add_recognizer(blood_type_recognizer)
         self.analyzer.registry.add_recognizer(number_recognizer)
 
         # Can define how the operators will behave for each entity
-        operators = {
+        self.operators = {
             "DEFAULT": OperatorConfig("replace", {"new_value": "<ANONYMIZED>"}),
             
             "PERSON": OperatorConfig("replace", {"new_value": "<ANONYMOUS>"}),
             
-            "NUMBERS": OperatorConfig("mask", {"type": "mask","masking_char": "*",
-                                                    "chars_to_mask": 4,
-                                                    "from_end": True,}),
+            "NUMBERS": OperatorConfig("replace", {"new_value": "<ANONYMIZED>"}),
             
             "IP_ADDRESS": OperatorConfig("mask", {"type": "mask","masking_char": "*",
                                                     "chars_to_mask": 12,
@@ -62,23 +51,33 @@ class Tran:
             "BLOOD_TYPE": OperatorConfig("replace", {"new_value": "<HIDDEN_BLOOD_TYPE>"})
         
         }
-        
+    
+    def translate(self):
+        #translates from greek to english 
+        self.translated_txt = ts.translate_text(self.text, translater='google',
+                                            from_language='el',
+                                            to_language='en')
+        return self.translated_txt
+
+
+    def anonymize(self):
+                
         if self.lang == 'el':
         # Anonymize the translated text
             self.results = self.analyzer.analyze(text=self.translated_txt,
-                                                entities=entities,
+                                                entities=self.entities,
                                                 language='en')
             self.anon_text = self.anonymizer.anonymize(text=self.translated_txt, analyzer_results=self.results,
-                                                operators=operators)
+                                                operators=self.operators)
             return self.anon_text
         
         #Anonymize english text
-        if self.lang == 'en':
+        elif self.lang == 'en':
             self.results = self.analyzer.analyze(text=self.text,
-                                                entities=entities,
+                                                entities=self.entities,
                                                 language='en')
             self.anon_text = self.anonymizer.anonymize(text=self.text, analyzer_results=self.results,
-                                                operators=operators)
+                                                operators=self.operators)
             return self.anon_text
         
     def PII_removal_from_original(self):
@@ -93,6 +92,8 @@ class Tran:
         
         if self.lang == 'en':
             return self.anon_text.text
+
+
 
 
 
