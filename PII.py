@@ -1,9 +1,10 @@
 import translators as ts
 import translators.server as tss
-from presidio_analyzer import AnalyzerEngine
+from presidio_analyzer import AnalyzerEngine, Pattern
 from presidio_anonymizer import AnonymizerEngine
 from presidio_anonymizer.entities import OperatorResult, OperatorConfig
 from presidio_analyzer import PatternRecognizer
+import random
 
 
 class Tran:
@@ -21,7 +22,7 @@ class Tran:
 
     def anonymize(self):
         #List of entities to look for
-        entities = ['PERSON','PHONE_NUMBER','CREDIT_CARD',
+        entities = ['PERSON', 'NUMBERS',
                    'EMAIL_ADDRESS', 'IP_ADDRESS', 'NRP',
                    'LOCATION', 'BLOOD_TYPE']
         
@@ -31,8 +32,13 @@ class Tran:
         # Option to create custom recognizers
         blood_type_recognizer = PatternRecognizer(supported_entity="BLOOD_TYPE",
                                       deny_list=["A-","A+","B-","B+","AB-","AB+","O-","O+"])
+        
+        numbers_pattern = Pattern(name="numbers_pattern",regex="\d+", score = 0.5)
+
+        number_recognizer = PatternRecognizer(supported_entity="NUMBER", patterns = [numbers_pattern])
 
         self.analyzer.registry.add_recognizer(blood_type_recognizer)
+        self.analyzer.registry.add_recognizer(number_recognizer)
 
         # Can define how the operators will behave for each entity
         operators = {
@@ -40,13 +46,9 @@ class Tran:
             
             "PERSON": OperatorConfig("replace", {"new_value": "<ANONYMOUS>"}),
             
-            "CREDIT_CARD": OperatorConfig("mask",{"type":"mask","masking_char": "*",
-                                                 "chars_to_mask": 12,
-                                                 "from_end": True}),
-            
-            "PHONE_NUMBER": OperatorConfig("mask", {"type": "mask","masking_char": "*",
-                                                    "chars_to_mask": 8,
-                                                    "from_end": False,}),
+            "NUMBERS": OperatorConfig("mask", {"type": "mask","masking_char": "*",
+                                                    "chars_to_mask": 4,
+                                                    "from_end": True,}),
             
             "IP_ADDRESS": OperatorConfig("mask", {"type": "mask","masking_char": "*",
                                                     "chars_to_mask": 12,
@@ -68,7 +70,7 @@ class Tran:
                                                 language='en')
             self.anon_text = self.anonymizer.anonymize(text=self.translated_txt, analyzer_results=self.results,
                                                 operators=operators)
-            return self.anon_text.text
+            return self.anon_text
         
         #Anonymize english text
         if self.lang == 'en':
@@ -77,20 +79,28 @@ class Tran:
                                                 language='en')
             self.anon_text = self.anonymizer.anonymize(text=self.text, analyzer_results=self.results,
                                                 operators=operators)
-            return self.anon_text.text
+            return self.anon_text
         
     def PII_removal_from_original(self):
+        start = self.results[0].to_dict().get('start')
+        end = self.results[0].to_dict().get('end')
 
-
+        if self.lang == 'el':
+            pii_translated = ts.translate_text(self.translated_txt[start:end], translater='google',
+                                           from_language='en',to_language='el')
         
+            return self.text.replace(pii_translated, self.anon_text.items[0].text)
+        
+        if self.lang == 'en':
+            return self.anon_text.text
+
+
+
 def process_user_input():
 
     languages = ['el','en']
     exit_phrases = ['goodbye','bye','good bye','see you']
-    chatbot_prompts = ['What is your name?', 'I need your credit card number to make this purchase',
-                       'What email address should I send this to?', 'Tell me about yourself',
-                       'What number should they call you at?', 'Where do you live?',
-                       'What is your blood type?','What IP address are you connected from?']
+    
 
     lang_input = str(input('Choose language: \n\
     1) Greek \n\
@@ -103,11 +113,19 @@ def process_user_input():
         print('Language not supported')
 
     while True:
-        user_input = str(input(f'{random.choice(chatbot_prompts)}: '))
+        global user_tran
+        user_input = str(input(f'Say something personal: '))
         user_tran = Tran(chosen_lang, user_input)
-        user_tran.translate()
-        if user_tran.translated_txt.lower() in exit_phrases:
+
+        if chosen_lang == 'el':
+            user_tran.translate()
+
+        if user_tran.text.lower() in exit_phrases:
             print('Goodbye!')
             break
+
         user_tran.anonymize()
-        print(user_tran.tran_back())
+        
+        print(user_tran.PII_removal_from_original())
+
+process_user_input()
