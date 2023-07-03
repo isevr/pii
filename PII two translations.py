@@ -35,14 +35,14 @@ class Tran:
             
             "PERSON": OperatorConfig("replace", {"new_value": "<ANONYMOUS>"}),
             
-            "NUMBERS": OperatorConfig("replace", {"new_value": "<ANONYMIZED>"}),
+            "NUMBERS": OperatorConfig("replace", {"new_value": "<HIDDEN_NUMBER>"}),
             
             "IP_ADDRESS": OperatorConfig("mask", {"type": "mask","masking_char": "*",
                                                     "chars_to_mask": 5,
                                                     "from_end": True,}),
             "NRP": OperatorConfig("replace", {"new_value": "<REDACTED_NRP>"}),
             
-            "LOCATION": OperatorConfig("replace", {"new_value": "<HIDDEN>"}),
+            "LOCATION": OperatorConfig("replace", {"new_value": "<HIDDEN_LOCATION>"}),
             
             "EMAIL_ADDRESS": OperatorConfig("replace", {"new_value": "<HIDDEN_EMAIL>"}),
             
@@ -52,7 +52,7 @@ class Tran:
     
     def translate(self):
         #translates from greek to english 
-        self.translated_txt = ts.translate_text(self.text, translater='google',
+        self.translated_txt = ts.translate_text(self.text, translator='google',
                                             from_language='el',
                                             to_language='en')
         return self.translated_txt
@@ -83,7 +83,7 @@ class Tran:
         end = self.results[0].to_dict().get('end')
 
         if self.lang == 'el':
-            pii_translated = ts.translate_text(self.anon_text.text, translater='google',
+            pii_translated = ts.translate_text(self.anon_text.text, translator='google',
                                            from_language='en',to_language='el')
         
             return pii_translated
