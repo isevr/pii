@@ -35,7 +35,7 @@ class Tran:
                                                                                       "amex","discover","jcb","diners","maestro","instapayment",
                                                                                       "πιστωτική","πιστωτικη","κάρτα","καρτα"])
         spacy_recognizer_el = SpacyRecognizer(supported_language="el")
-        numbers_pattern = Pattern(name="numbers_pattern",regex="\d+", score = 0.1)
+        numbers_pattern = Pattern(name="numbers_pattern",regex=r"\d+", score = 0.1)
         number_recognizer = PatternRecognizer(supported_entity="NUMBERS", patterns = [numbers_pattern],supported_language='el')
 
         # Registry object along with predefined recognizers
@@ -82,11 +82,18 @@ class Tran:
         
         self.anon_text = self.anonymizer.anonymize(text=self.text, analyzer_results=self.results,
                                             operators=self.operators) 
-        print(self.anon_text)
-        return self.anon_text
+        print(self.anon_text.text)
+    
+    def array(self):
+        entity_matrix = {}
+        for i in range(len(self.results)):
+            entity_matrix[self.results[i].to_dict()['entity_type']] = self.text[self.results[i].to_dict()['start']:self.results[i].to_dict()['end']]
+        print(entity_matrix)
 
-def process_user_input(lang, text):
-    user_tran = Tran(lang, text)
-    return user_tran.anonymize()
+def anonymize_user_input(lang, text):
+    user_input = Tran(lang, text)
+    user_input.anonymize()
+    return user_input.array()
 
-process_user_input('el', 'Με λένε Γιάννη. Mένω στο Ηράκλειο.')
+anonymize_user_input('el', 'Με λένε Γιάννη. Mένω στο Ηράκλειο.')
+anonymize_user_input('en', 'My name is John. I live in Athens.')
