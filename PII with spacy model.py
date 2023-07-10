@@ -5,7 +5,7 @@ from presidio_analyzer.nlp_engine import NlpEngineProvider
 from presidio_analyzer.predefined_recognizers import EmailRecognizer, IpRecognizer, PhoneRecognizer, IbanRecognizer, CreditCardRecognizer, SpacyRecognizer
 
 class Tran:
-    def __init__(self, lang, text):
+    def __init__(self, lang:str, text:str):
         triple_text = ''' 
         '''
         self.text = triple_text + text
