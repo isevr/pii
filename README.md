@@ -26,8 +26,9 @@ Opt to return an array in JSON format with the detected entities.
 
 - Install spaCy models for greek and english with:
 
-    python -m spacy download el_core_news_lg
-    python -m spacy download en_core_web_lg
+    $ python -m spacy download el_core_news_lg
+    
+    $ python -m spacy download en_core_web_lg
 
 - Start a local server using:
 
