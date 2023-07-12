@@ -1,15 +1,18 @@
 A module to anonymize Personal Identifiable Information (PII), utilizing the presidio package. The module operates as a service using fastAPI and currently supports Greek and English.
 
 ## PII anonymized:
-- Names (Currently sometimes unreliable in greek version)
-- Location
-- Date and time (Currently sometimes unreliable in greek version)
-- Phone numbers
-- Long numbers (e.g. Licenses, SSN)
-- IBAN codes
-- Credit card numbers
-- E-mail address
-- IP address
+
+The module can either hide PII or replace them with dummy values. Below are lists the detected entities and how they are handled respectively.
+
+- Names: ANONYMOUS | Anonymous
+- Location: HIDDEN_LOCATION | Generic Location
+- Date & time: HIDDEN_DATE_TIME | HIDDEN Date or Time 
+- Phone numbers: HIDDEN_PHONE_NUMBER | 123456
+- Long numbers (e.g. Licenses, SSN): HIDDEN_LONG_NUMBER | 0000000000
+- IBAN codes: HIDDEN_IBAN | Random two capital letters followed by 32 zeroes
+- Credit card numbers: HIDDEN_CREDIT_CARD | 0000 0000 0000 0000
+- E-mail address: HIDDEN_EMAIL | example@mail.com
+- IP address: Masks last 6 digits | 127.0.0.1
 
 
 ## Modes
@@ -39,3 +42,8 @@ Opt to return an array in JSON format with the detected entities.
     localhost:8000/docs
 
 - Use the 'Try it out' button and fill in the required parameters
+
+
+## TODO
+
+The module is, occasionally, unreliable at detecting names and locations in the greek language. Factors that affect this is spelling and use (or lack of use) of accents. Most often this is fixed with by restarting the service. It is, however, being worked on in order to improve performance.

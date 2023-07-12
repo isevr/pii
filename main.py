@@ -13,6 +13,11 @@ pii_app = FastAPI()
 
 @pii_app.get('/anon/{lang}/{text}/{return_dummies}/{return_array}')
 def anonymize(lang: str,text: str,return_dummies: bool, return_array: bool):
+    # Check for full stop
+    if text[-1] != '.':
+        text = text+str('.')
+
+
     # model configuration for greek and english
     configuration = {"nlp_engine_name": "spacy",
                         "models": [{"lang_code": "el", "model_name": "el_core_news_lg"},
@@ -94,7 +99,7 @@ def anonymize(lang: str,text: str,return_dummies: bool, return_array: bool):
             
             "EMAIL_ADDRESS": OperatorConfig("replace", {"new_value": "HIDDEN_EMAIL"}),
 
-            "DATE_TIME": OperatorConfig("replace", {"new_value": "HIDDEN DATE_TIME"}),
+            "DATE_TIME": OperatorConfig("replace", {"new_value": "HIDDEN_DATE_TIME"}),
 
             "CREDIT_CARD": OperatorConfig("replace", {"new_value": "HIDDEN_CREDIT_CARD"}),
 
@@ -106,9 +111,9 @@ def anonymize(lang: str,text: str,return_dummies: bool, return_array: bool):
         operators = {
             "PERSON": OperatorConfig("replace", {"new_value": "Anonymous"}),
         
-            "PHONES_en": OperatorConfig("replace", {"new_value": "000000"}),
+            "PHONES_en": OperatorConfig("replace", {"new_value": "123456"}),
 
-            "PHONES_el": OperatorConfig("replace", {"new_value": "000000"}),
+            "PHONES_el": OperatorConfig("replace", {"new_value": "123456"}),
         
             "IP_ADDRESS": OperatorConfig("replace", {"new_value": "127.0.0.1"}),
 
@@ -120,7 +125,7 @@ def anonymize(lang: str,text: str,return_dummies: bool, return_array: bool):
         
             "EMAIL_ADDRESS": OperatorConfig("replace", {"new_value": "example@mail.com"}),
 
-            "DATE_TIME": OperatorConfig("replace", {"new_value": "HIDDEN DATE_TIME"}),
+            "DATE_TIME": OperatorConfig("replace", {"new_value": "HIDDEN Date or Time"}),
 
             "CREDIT_CARD": OperatorConfig("replace", {"new_value": "0000 0000 0000 0000"}),
 
