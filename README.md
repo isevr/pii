@@ -23,6 +23,121 @@ Choose whether to replace the anonymized values with dummy values or to simply h
 ### Array mode (bool)
 Opt to return an array in JSON format with the detected entities.
 
+
+## Example Outputs
+
+### Anonymized text for input in Greek
+
+Input:
+```
+Με λένε Ελένη. Το IP μου ειναι 192.168.0.1 και η πιστωτική μου κάρτα είναι 1234 1234 1234 1234
+```
+
+Output:
+```
+"Με λένε ANONYMOUS. Το IP μου ειναι 192.16***** και η πιστωτική μου κάρτα είναι HIDDEN_CREDIT_CARD."
+```
+### Full JSON Output for input in English
+
+Input:
+```
+Hello, my name is John. I live in London and i am 25 years old. My email address is thismail@gmail.com
+```
+
+Output:
+```
+{
+  "Anonymized text": "Hello, my name is ANONYMOUS. I live in HIDDEN_LOCATION and i am HIDDEN_DATE_TIME. My email address is HIDDEN_EMAIL.",
+  "Entity Array": [
+    {
+      "entity_type": "EMAIL_ADDRESS",
+      "start": 84,
+      "end": 102,
+      "score": 1,
+      "analysis_explanation": {
+        "recognizer": "EmailRecognizer",
+        "pattern_name": "Email (Medium)",
+        "pattern": "\\b((([!#$%&'*+\\-/=?^_`{|}~\\w])|([!#$%&'*+\\-/=?^_`{|}~\\w][!#$%&'*+\\-/=?^_`{|}~\\.\\w]{0,}[!#$%&'*+\\-/=?^_`{|}~\\w]))[@]\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*)\\b",
+        "original_score": 0.5,
+        "score": 1,
+        "textual_explanation": null,
+        "score_context_improvement": 0.5,
+        "supportive_context_word": "email",
+        "validation_result": true
+      },
+      "recognition_metadata": {
+        "recognizer_name": "EmailRecognizer",
+        "recognizer_identifier": "EmailRecognizer_2348946225808"
+      }
+    },
+    {
+      "entity_type": "PERSON",
+      "start": 18,
+      "end": 22,
+      "score": 0.85,
+      "analysis_explanation": {
+        "recognizer": "SpacyRecognizer",
+        "pattern_name": null,
+        "pattern": null,
+        "original_score": 0.85,
+        "score": 0.85,
+        "textual_explanation": "Identified as PERSON by Spacy's Named Entity Recognition",
+        "score_context_improvement": 0,
+        "supportive_context_word": "",
+        "validation_result": null
+      },
+      "recognition_metadata": {
+        "recognizer_name": "SpacyRecognizer",
+        "recognizer_identifier": "SpacyRecognizer_2348682647184"
+      }
+    },
+    {
+      "entity_type": "LOCATION",
+      "start": 34,
+      "end": 40,
+      "score": 0.85,
+      "analysis_explanation": {
+        "recognizer": "SpacyRecognizer",
+        "pattern_name": null,
+        "pattern": null,
+        "original_score": 0.85,
+        "score": 0.85,
+        "textual_explanation": "Identified as GPE by Spacy's Named Entity Recognition",
+        "score_context_improvement": 0,
+        "supportive_context_word": "",
+        "validation_result": null
+      },
+      "recognition_metadata": {
+        "recognizer_name": "SpacyRecognizer",
+        "recognizer_identifier": "SpacyRecognizer_2348682647184"
+      }
+    },
+    {
+      "entity_type": "DATE_TIME",
+      "start": 50,
+      "end": 62,
+      "score": 0.85,
+      "analysis_explanation": {
+        "recognizer": "SpacyRecognizer",
+        "pattern_name": null,
+        "pattern": null,
+        "original_score": 0.85,
+        "score": 0.85,
+        "textual_explanation": "Identified as DATE by Spacy's Named Entity Recognition",
+        "score_context_improvement": 0,
+        "supportive_context_word": "",
+        "validation_result": null
+      },
+      "recognition_metadata": {
+        "recognizer_name": "SpacyRecognizer",
+        "recognizer_identifier": "SpacyRecognizer_2348682647184"
+      }
+    }
+  ]
+}
+
+```
+
 ## Installation
 
 - Install the required packages using the requirements.txt
