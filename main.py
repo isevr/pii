@@ -1,21 +1,29 @@
 import random
 from fastapi import FastAPI
 import uvicorn
+# from mangum import Mangum
 from presidio_analyzer import AnalyzerEngine, Pattern, PatternRecognizer, RecognizerRegistry
 from presidio_anonymizer import AnonymizerEngine
 from presidio_anonymizer.entities import OperatorConfig
 from presidio_analyzer.nlp_engine import NlpEngineProvider
-from presidio_analyzer.predefined_recognizers import EmailRecognizer, IpRecognizer, PhoneRecognizer, IbanRecognizer, CreditCardRecognizer, SpacyRecognizer
+from presidio_analyzer.predefined_recognizers import EmailRecognizer, IpRecognizer, PhoneRecognizer, IbanRecognizer, CreditCardRecognizer, SpacyRecognizer, DateRecognizer
 from string import ascii_lowercase
 
-pii_app = FastAPI()
+app = FastAPI()
+# handler = Mangum(app)
 
+@app.get("/")
+def read_root():
+   return {"Welcome to": "PII-Anonymizer"}
 
-@pii_app.get('/anon/{lang}/{text}/{return_dummies}/{return_array}')
-def anonymize(lang: str,text: str,return_dummies: bool, return_array: bool):
+@app.get('/anon/{lang}/{return_dummies}/{return_array}/-/{text:path}')
+def anonymize(lang: str, return_dummies: bool, return_array: bool, text: str):
     # Check for full stop
     if text[-1] != '.':
         text = text+str('.')
+
+    text = text.replace('-', '.')
+    text = text.replace('/','.')
 
 
     # model configuration for greek and english
@@ -43,7 +51,8 @@ def anonymize(lang: str,text: str,return_dummies: bool, return_array: bool):
     credit_recognizer_el = CreditCardRecognizer(supported_language="el", context=["credit","card","visa","mastercard","cc",
                                                                                   "amex","discover","jcb","diners","maestro","instapayment",
                                                                                   "πιστωτική","πιστωτικη","κάρτα","καρτα"])
-    spacy_recognizer_el = SpacyRecognizer(supported_language="el")
+    spacy_recognizer_el = SpacyRecognizer(supported_language="el", context=['ετων','χρονων','γεννηθηκα','ετών','χρονών','γεννήθηκα'])
+    date_recognizer_el = DateRecognizer(supported_language='el', context=['ετων','χρονων','γεννηθηκα','ετών','χρονών','γεννήθηκα'])
 
     #Custom recognizers
     phones_pattern = Pattern(name="phones_pattern",regex=r"(\+\d{6,})|(00\d{6,})", score=0.9) #regex to match: 1) at least 6 numbers after +, 2)at least 6 numbers after '00'
@@ -70,6 +79,7 @@ def anonymize(lang: str,text: str,return_dummies: bool, return_array: bool):
     registry.add_recognizer(spacy_recognizer_el)
     registry.add_recognizer(long_numbers_recognizer_en)
     registry.add_recognizer(long_numbers_recognizer_el)
+    registry.add_recognizer(date_recognizer_el)
 
 
     # Analyzer and anonymizer objects        
@@ -144,7 +154,8 @@ def anonymize(lang: str,text: str,return_dummies: bool, return_array: bool):
         entity_array = []
         for i in range(len(results)):
             entity_array.append(results[i].to_dict())
-        return {'Anonymized text': anon_text.text, 'Entity Array': entity_array}
+        return {'Anonymized text': anon_text.text, 
+                'Entity Array': entity_array}
     
     elif return_array == False:
         return anon_text.text
@@ -153,6 +164,6 @@ def anonymize(lang: str,text: str,return_dummies: bool, return_array: bool):
 
 
 if __name__ == "__main__":
-    uvicorn.run(pii_app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8080)
 
 
